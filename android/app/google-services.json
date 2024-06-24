@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "895738126448",
+    "firebase_url": "https://cloudbook-fc683-default-rtdb.firebaseio.com",
+    "project_id": "cloudbook-fc683",
+    "storage_bucket": "cloudbook-fc683.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895738126448:android:1e6d1c1891816c632cd4b5",
+        "android_client_info": {
+          "package_name": "cloudbook.br.cloudbook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkkBE-dux7gfIBlnrqGW1ms-Ps7IWaJYo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895738126448:android:5cc104c7ef2deb442cd4b5",
+        "android_client_info": {
+          "package_name": "com.cloudbook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkkBE-dux7gfIBlnrqGW1ms-Ps7IWaJYo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895738126448:android:fec3c6f0c2cbe9d92cd4b5",
+        "android_client_info": {
+          "package_name": "com.cloudbook.br"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkkBE-dux7gfIBlnrqGW1ms-Ps7IWaJYo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

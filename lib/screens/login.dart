@@ -1,19 +1,56 @@
 import 'package:cloudbook/components/custom_button.dart';
 import 'package:cloudbook/components/custom_textfield.dart';
+import 'package:cloudbook/helper/helper_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:ionicons/ionicons.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   final void Function()? onTap;
 
-  LoginScreen({super.key, required this.onTap});
+  const LoginScreen({super.key, required this.onTap});
 
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   // controladores de texto
   final TextEditingController emailController = TextEditingController();
+
   final TextEditingController passwordController = TextEditingController();
 
   // metodo de login
-  void login() {}
+  void login() async {
+    // mostrar spinner
+    showDialog(
+      context: context,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    // tenrar fazer login
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    }
+
+    // se houver erro
+    on FirebaseAuthException catch (e) {
+      if (mounted) {
+        // mostrar spinner
+        Navigator.pop(context);
+        // mostrar erro
+        displayMessageToUser(e.code, context);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +152,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: onTap,
+                    onTap: widget.onTap,
                     child: const Text(
                       " Crie uma",
                       style: TextStyle(fontWeight: FontWeight.w600),

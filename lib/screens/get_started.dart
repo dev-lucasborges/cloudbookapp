@@ -1,6 +1,8 @@
+import 'package:cloudbook/auth/auth.dart';
+import 'package:cloudbook/screens/login.dart';
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart'; // Importa o arquivo de cores
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloudbook/screens/home.dart';
 
 class GetStartedScreen extends StatefulWidget {
   @override
@@ -12,7 +14,7 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
 
   _markAsSeen() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('seenGetStarted', false);
+    await prefs.setBool('seenGetStarted', true);
   }
 
   int _pageIndex = 0;
@@ -29,6 +31,7 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
     super.dispose();
   }
 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         body: SafeArea(
@@ -46,7 +49,11 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
                   ),
                   onPressed: () {
                     _markAsSeen();
-                    Navigator.pushReplacementNamed(context, '/login');
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AuthPage()),
+                      (Route<dynamic> route) => false,
+                    );
                   },
                   child: const Text('Pular',
                       style: TextStyle(
@@ -96,14 +103,14 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
                         Navigator.pushReplacementNamed(context, '/login');
                       }
                     },
-                    child: _pageIndex < demoData.length - 1
-                        ? Icon(Icons.arrow_forward_ios_rounded,
-                            size: 16, color: Colors.white)
-                        : const Icon(Icons.check,
-                            size: 16, color: Colors.white),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.amber,
                     ),
+                    child: _pageIndex < demoData.length - 1
+                        ? const Icon(Icons.arrow_forward_ios_rounded,
+                            size: 16, color: Colors.white)
+                        : const Icon(Icons.check,
+                            size: 16, color: Colors.white),
                   ),
                 ),
               ],

@@ -1,22 +1,74 @@
 import 'package:cloudbook/components/custom_button.dart';
 import 'package:cloudbook/components/custom_textfield.dart';
+import 'package:cloudbook/helper/helper_functions.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   final void Function()? onTap;
 
-  RegisterScreen({super.key, required this.onTap});
+  const RegisterScreen({super.key, required this.onTap});
 
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
   // controladores de texto
   final TextEditingController emailController = TextEditingController();
+
   final TextEditingController usernameController = TextEditingController();
+
   final TextEditingController passwordController = TextEditingController();
+
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
   // metodo de registro
-  void register() {}
+  void registerUser() async {
+    // mostrar spinner
+    showDialog(
+      context: context,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    // validar campos
+    if (passwordController.text != confirmPasswordController.text) {
+      // mostrar spinner
+      if (mounted) {
+        Navigator.pop(context);
+      }
+      // mostrar erro
+      displayMessageToUser("As senhas não coincidem", context);
+    }
+
+    // se a senha não coincidir
+    else {
+      // tentar registrar o usuário
+      try {
+        // cria o usuário
+        UserCredential? userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+        // mostrar spinner
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          // mostrar spinner
+          Navigator.pop(context);
+          // mostrar erro
+          displayMessageToUser(e.code, context);
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,7 +200,7 @@ class RegisterScreen extends StatelessWidget {
 
               CustomButton(
                 text: "Criar",
-                onTap: register,
+                onTap: registerUser,
               ),
 
               // dont have account
@@ -163,7 +215,7 @@ class RegisterScreen extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: onTap,
+                    onTap: widget.onTap,
                     child: const Text(
                       " Entrar",
                       style: TextStyle(fontWeight: FontWeight.w600),

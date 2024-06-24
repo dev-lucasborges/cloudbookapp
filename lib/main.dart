@@ -1,13 +1,17 @@
-import 'package:cloudbook/auth/login_ou_registro.dart';
+import 'package:cloudbook/auth/auth.dart';
+import 'package:cloudbook/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/get_started.dart';
 import 'screens/login.dart';
-import 'screens/painel.dart';
+import 'screens/home.dart';
 import 'package:cloudbook/theme/dark_mode.dart';
 import 'package:cloudbook/theme/light_mode.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(MyApp());
 }
 
@@ -17,34 +21,18 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool _seenGetStarted = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkIfSeen();
-  }
-
-  _checkIfSeen() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool seen = prefs.getBool('seenGetStarted') ?? false;
-    setState(() {
-      _seenGetStarted = seen;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'CloudBook',
       theme: lightMode,
       darkTheme: darkMode,
-      home: LoginOuRegistro(),
+      home: AuthPage(),
       routes: {
         '/login': (context) => LoginScreen(
               onTap: () {},
             ),
-        '/painel': (context) => PainelScreen(),
+        '/home': (context) => const HomeScreen(),
       },
     );
   }
