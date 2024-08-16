@@ -93,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 hintText: "exemplo@email.com",
                 obscureText: false,
                 controller: emailController,
+                focusNode: FocusNode(),
               ),
 
               const SizedBox(height: 17),
@@ -116,6 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 hintText: "••••••••••••",
                 obscureText: true,
                 controller: passwordController,
+                focusNode: FocusNode(),
               ),
 
               // forgot password
@@ -127,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Text(
                   "Esqueceu sua senha?",
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: Theme.of(context).textTheme.displayLarge!.color,
                   ),
                 ),
               ),
@@ -148,7 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     "Não tem uma conta?",
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
+                      color: Theme.of(context).textTheme.displayLarge!.color,
                     ),
                   ),
                   GestureDetector(

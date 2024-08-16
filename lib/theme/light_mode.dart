@@ -6,11 +6,19 @@ ThemeData lightMode = ThemeData(
   colorScheme: const ColorScheme.light(
     primary: AppColors.primaryColorLight,
     secondary: AppColors.secondaryColorLight,
+    onSecondary: AppColors.tertiaryColorLight,
     surface: AppColors.backgroundColorLight,
   ),
-  textTheme: ThemeData.light().textTheme.apply(
+  textTheme: ThemeData.light()
+      .textTheme
+      .apply(
         bodyColor: AppColors.textColorLight,
         displayColor: AppColors.textColorLight,
-        fontFamily: 'Poppins',
+        fontFamily: 'CeraPro',
+      )
+      .copyWith(
+        displayLarge: TextStyle(
+          color: Colors.black.withOpacity(0.8), // slightly darker than white
+        ),
       ),
 );

@@ -1,6 +1,7 @@
 import 'package:cloudbook/auth/auth.dart';
 import 'package:cloudbook/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:ionicons/ionicons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloudbook/screens/home.dart';
 
@@ -34,91 +35,98 @@ class _GetStartedScreenState extends State<GetStartedScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
         body: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
               children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                  ),
-                  onPressed: () {
-                    _markAsSeen();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AuthPage()),
-                      (Route<dynamic> route) => false,
-                    );
-                  },
-                  child: const Text('Pular',
-                      style: TextStyle(
-                          color: Colors.cyan, fontWeight: FontWeight.w400)),
-                ),
-              ],
-            ),
-            Expanded(
-              child: PageView.builder(
-                  itemCount: demoData.length,
-                  controller: _pageController,
-                  onPageChanged: (index) {
-                    setState(() {
-                      _pageIndex = index;
-                    });
-                  },
-                  itemBuilder: (context, index) => OnboardContent(
-                        image: demoData[index].image,
-                        title: demoData[index].title,
-                        description: demoData[index].description,
-                      )),
-            ),
-            Row(
-              children: [
-                ...List.generate(
-                  demoData.length,
-                  (index) => Padding(
-                    padding: const EdgeInsets.only(right: 7),
-                    child: DotIndicator(
-                      isActive: index == _pageIndex,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                SizedBox(
-                  height: 60,
-                  width: 60,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (_pageIndex < demoData.length - 1) {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 350),
-                          curve: Curves.easeInOut,
-                        );
-                      } else {
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                      ),
+                      onPressed: () {
                         _markAsSeen();
-                        Navigator.pushReplacementNamed(context, '/login');
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const AuthPage()),
+                          (Route<dynamic> route) => false,
+                        );
+                      },
+                      child: Text('Pular',
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .displayLarge!
+                                  .color,
+                              fontWeight: FontWeight.w400)),
                     ),
-                    child: _pageIndex < demoData.length - 1
-                        ? const Icon(Icons.arrow_forward_ios_rounded,
-                            size: 16, color: Colors.white)
-                        : const Icon(Icons.check,
-                            size: 16, color: Colors.white),
-                  ),
+                  ],
                 ),
+                Expanded(
+                  child: PageView.builder(
+                      itemCount: demoData.length,
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() {
+                          _pageIndex = index;
+                        });
+                      },
+                      itemBuilder: (context, index) => OnboardContent(
+                            image: demoData[index].image,
+                            title: demoData[index].title,
+                            description: demoData[index].description,
+                          )),
+                ),
+                Row(
+                  children: [
+                    ...List.generate(
+                      demoData.length,
+                      (index) => Padding(
+                        padding: const EdgeInsets.only(right: 7),
+                        child: DotIndicator(
+                          isActive: index == _pageIndex,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    SizedBox(
+                      height: 60,
+                      width: 60,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_pageIndex < demoData.length - 1) {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 350),
+                              curve: Curves.easeInOut,
+                            );
+                          } else {
+                            _markAsSeen();
+                            Navigator.pushReplacementNamed(context, '/login');
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                        ),
+                        child: _pageIndex < demoData.length - 1
+                            ? const Icon(Ionicons.chevron_forward,
+                                size: 16, color: Colors.white)
+                            : const Icon(Icons.check,
+                                size: 16, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                )
               ],
-            )
-          ],
-        ),
-      ),
-    ));
+            ),
+          ),
+        ));
   }
 }
 
@@ -137,7 +145,9 @@ class DotIndicator extends StatelessWidget {
       height: 8,
       width: isActive ? 23 : 8,
       decoration: BoxDecoration(
-        color: isActive ? Colors.black : Colors.amberAccent,
+        color: isActive
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).textTheme.displayLarge!.color,
         borderRadius: const BorderRadius.all(Radius.circular(12)),
       ),
     );
@@ -203,7 +213,7 @@ class OnboardContent extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           style: TextStyle(
-            color: Colors.redAccent,
+            color: Theme.of(context).textTheme.displayLarge!.color,
             fontSize: 14,
           ),
           description,

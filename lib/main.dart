@@ -8,6 +8,8 @@ import 'screens/login.dart';
 import 'screens/home.dart';
 import 'package:cloudbook/theme/dark_mode.dart';
 import 'package:cloudbook/theme/light_mode.dart';
+import 'components/custom_page_route.dart';
+import 'screens/complete_profile.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,12 +29,27 @@ class _MyAppState extends State<MyApp> {
       title: 'CloudBook',
       theme: lightMode,
       darkTheme: darkMode,
-      home: AuthPage(),
-      routes: {
-        '/login': (context) => LoginScreen(
-              onTap: () {},
-            ),
-        '/home': (context) => const HomeScreen(),
+      home: const AuthPage(),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/home':
+            return CustomPageRoute(
+              child: const HomeScreen(),
+              settings: settings,
+            );
+          case '/login':
+            return CustomPageRoute(
+              child: LoginScreen(onTap: () {}),
+              settings: settings,
+            );
+          case '/complete_profile':
+            return CustomPageRoute(
+              child: const CompleteProfileScreen(),
+              settings: settings,
+            );
+          default:
+            return null;
+        }
       },
     );
   }

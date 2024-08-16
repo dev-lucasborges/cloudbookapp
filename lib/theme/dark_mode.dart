@@ -6,11 +6,19 @@ ThemeData darkMode = ThemeData(
   colorScheme: const ColorScheme.dark(
     primary: AppColors.primaryColorDark,
     secondary: AppColors.secondaryColorDark,
+    onSecondary: AppColors.tertiaryColorDark,
     surface: AppColors.backgroundColorDark,
   ),
-  textTheme: ThemeData.dark().textTheme.apply(
+  textTheme: ThemeData.dark()
+      .textTheme
+      .apply(
         bodyColor: AppColors.textColorDark,
         displayColor: AppColors.textColorDark,
-        fontFamily: 'Poppins',
+        fontFamily: 'CeraPro',
+      )
+      .copyWith(
+        displayLarge: TextStyle(
+          color: Colors.white.withOpacity(0.8), // slightly darker than white
+        ),
       ),
 );
