@@ -1,5 +1,6 @@
 import 'package:cloudbook/auth/auth.dart';
 import 'package:cloudbook/firebase_options.dart';
+import 'package:cloudbook/screens/profile_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -45,6 +46,11 @@ class _MyAppState extends State<MyApp> {
           case '/complete_profile':
             return CustomPageRoute(
               child: const CompleteProfileScreen(),
+              settings: settings,
+            );
+          case '/profile':
+            return CustomPageRoute(
+              child: ProfilePage(),
               settings: settings,
             );
           default:

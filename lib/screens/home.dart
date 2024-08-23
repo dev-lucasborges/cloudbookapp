@@ -1,7 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:ionicons/ionicons.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,38 +18,136 @@ class _HomeScreenState extends State<HomeScreen> {
     "Novos recursos disponíveis em breve!"
   ];
 
+  String userName = "Professor";
+  bool isProfileIncomplete = false;
   int currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      DocumentSnapshot userData = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userData.exists) {
+        String? fullName = userData['fullName'];
+
+        if (fullName == null || fullName.isEmpty) {
+          // Usuário desatualizado, mostrar notificação de perfil incompleto
+          setState(() {
+            isProfileIncomplete = true;
+            notifications.insert(0,
+                "Seu perfil está incompleto. Complete seu nome para acessar todas as funcionalidades.");
+          });
+        } else {
+          setState(() {
+            userName = fullName.split(' ').first; // Pega o primeiro nome
+          });
+        }
+      }
+    }
+  }
 
   // logout
   Future<void> logout() async {
     await FirebaseAuth.instance.signOut();
   }
 
-  // Método para limpar a preferência
+  // Método para limpar a preferência e deslogar
   Future<void> clearPreference(BuildContext context) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('seenGetStarted');
-    await prefs.remove('fullName');
-    await prefs.remove('schoolName');
-    await prefs.remove('hasClass');
     await FirebaseAuth.instance.signOut();
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Preferences cleared successfully.'),
+        content: Text('Preferências e sessão limpas com sucesso.'),
       ),
     );
   }
 
   // Verificar e redirecionar para completar perfil
   void checkProfileCompletion(BuildContext context) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? fullName = prefs.getString('fullName');
-    String? schoolName = prefs.getString('schoolName');
-    bool hasClass = prefs.getBool('hasClass') ?? false;
+    User? user = FirebaseAuth.instance.currentUser;
 
-    if (fullName == null || schoolName == null || !hasClass) {
-      Navigator.pushNamed(context, '/complete_profile');
+    if (user != null) {
+      DocumentSnapshot userData = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userData.exists) {
+        String? fullName = userData['fullName'];
+        String? schoolId = userData['schoolsUID'];
+        // Este campo armazena o docId da escola
+        List<dynamic>? classes = userData['classes'];
+
+        if (fullName == null ||
+            schoolId == null ||
+            classes == null ||
+            classes.isEmpty) {
+          Navigator.pushNamed(context, '/complete_profile');
+        }
+      } else {
+        Navigator.pushNamed(context, '/complete_profile');
+      }
+    }
+  }
+
+  void navigateToProfile(BuildContext context) {
+    Navigator.pushNamed(context, '/profile');
+  }
+
+  void getDataList(BuildContext context) async {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      DocumentSnapshot userData = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      print(userData.data());
+      if (userData.exists) {
+        String? fullName = userData['fullName'];
+        String? schoolId = userData[
+            'schoolsUID']; // Buscamos o campo que armazena o docId da escola
+        List<dynamic>? classes = userData['classes'];
+
+        if (fullName != null &&
+            schoolId != null &&
+            classes != null &&
+            classes.isNotEmpty) {
+          // Buscar informações da escola usando o UID (docId)
+          DocumentSnapshot schoolData = await FirebaseFirestore.instance
+              .collection('schools')
+              .doc(schoolId)
+              .get();
+
+          if (schoolData.exists) {
+            String? schoolName = schoolData['schoolName'];
+            String? createdBy = schoolData['createdBy'];
+            Timestamp? createdAt = schoolData['createdAt'];
+
+            print("UID da escola: " + schoolId);
+            print("Nome da Escola: $schoolName");
+            print("Criado por: $createdBy");
+            print("Criado em: ${createdAt?.toDate()}");
+          } else {
+            print('Escola não encontrada');
+          }
+        } else {
+          print("Perfil incompleto. Verifique o nome, escola e turmas.");
+        }
+      } else {
+        print('Usuário não encontrado');
+      }
     }
   }
 
@@ -76,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.secondary,
-                    borderRadius: BorderRadius.vertical(
+                    borderRadius: const BorderRadius.vertical(
                       bottom: Radius.circular(40),
                     ),
                   ),
@@ -103,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 RichText(
                                   text: TextSpan(
-                                    text: 'Olá,',
+                                    text: 'Olá, ',
                                     style: DefaultTextStyle.of(context)
                                         .style
                                         .copyWith(
@@ -112,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                     children: <TextSpan>[
                                       TextSpan(
-                                        text: ' Professor',
+                                        text: userName,
                                         style: DefaultTextStyle.of(context)
                                             .style
                                             .copyWith(
@@ -126,12 +224,17 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                             const Spacer(),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Image.asset(
-                                imagePath,
-                                width: 80,
-                                height: 80,
+                            GestureDetector(
+                              onTap: () {
+                                navigateToProfile(context);
+                              },
+                              child: Align(
+                                alignment: Alignment.centerRight,
+                                child: Image.asset(
+                                  imagePath,
+                                  width: 80,
+                                  height: 80,
+                                ),
                               ),
                             ),
                           ],
@@ -158,8 +261,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                             Theme.of(context).iconTheme.color,
                                         size: 50,
                                       ),
-                                      SizedBox(height: 4),
-                                      Text(
+                                      const SizedBox(height: 4),
+                                      const Text(
                                         'Notas',
                                         style: TextStyle(
                                           fontSize: 12,
@@ -172,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  checkProfileCompletion(context);
+                                  getDataList(context);
                                 },
                                 child: SizedBox(
                                   width: 94,
@@ -184,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Ionicons.document_text_outline,
                                         size: 50,
                                       ),
-                                      SizedBox(height: 4),
+                                      const SizedBox(height: 4),
                                       Text(
                                         'Resumo',
                                         style: TextStyle(
@@ -249,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               },
                               child: Icon(
                                 Ionicons.chevron_down,
-                                color: Colors.white,
+                                color: Theme.of(context).iconTheme.color,
                               ),
                             ),
                           ),
@@ -320,8 +423,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: currentPage == index
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).colorScheme.onSecondary,
+                                ? Theme.of(context).colorScheme.onSecondary
+                                : Theme.of(context).colorScheme.tertiary,
                           ),
                         );
                       }),

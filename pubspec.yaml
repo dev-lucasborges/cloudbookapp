@@ -38,6 +38,7 @@ dependencies:
   firebase_core: ^3.1.0
   firebase_auth: ^5.1.0
   cloud_firestore: ^5.2.1
+  iconoir_flutter: ^7.8.0
 
 dev_dependencies:
   flutter_test:
@@ -61,6 +62,7 @@ flutter:
     - assets/menino.jpg
     - assets/profile-light.png
     - assets/profile-dark.png
+    - assets/profile-background.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
