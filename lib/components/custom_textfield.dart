@@ -7,15 +7,19 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final Function(String)? onChanged;
+  final TextInputType keyboardType;
+  final Color borderColor;
 
   const CustomTextField({
-    Key? key,
+    super.key,
     required this.hintText,
     this.obscureText = false,
     required this.controller,
     required this.focusNode,
     this.onChanged,
-  }) : super(key: key);
+    this.keyboardType = TextInputType.text,
+    this.borderColor = Colors.grey,
+  });
 
   @override
   _CustomTextFieldState createState() => _CustomTextFieldState();
@@ -42,12 +46,22 @@ class _CustomTextFieldState extends State<CustomTextField> {
       controller: widget.controller,
       obscureText: _obscureText,
       focusNode: widget.focusNode,
+      keyboardType: widget.keyboardType,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        border: OutlineInputBorder(
+        enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(11),
-          borderSide: const BorderSide(color: Colors.red),
+          borderSide: BorderSide(color: widget.borderColor),
         ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(11),
+          borderSide: BorderSide(
+              width: 2, color: Theme.of(context).colorScheme.primary),
+        ),
+        // errorBorder: OutlineInputBorder(
+        //   borderRadius: BorderRadius.circular(11),
+        //   borderSide: BorderSide(color: Color.fromARGB(255, 66, 125, 145)),
+        // ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         suffixIcon: widget.obscureText
@@ -63,13 +77,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
       ),
       style: TextStyle(
         fontSize: 16,
-        letterSpacing: widget.obscureText
-            ? 2.0
-            : 0.0, // Ajuste o espaçamento dos caracteres apenas para obscureText
+        letterSpacing: widget.obscureText ? 2.0 : 0.0,
       ),
       onChanged: (value) {
         if (widget.onChanged != null) {
-          widget.onChanged!(value); // Chama a função de callback
+          widget.onChanged!(value);
         }
       },
     );

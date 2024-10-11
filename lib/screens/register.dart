@@ -16,19 +16,21 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final PageController _pageController = PageController();
-
-  // controladores de texto
   final TextEditingController emailController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
-  // nós de foco
   final FocusNode emailFocusNode = FocusNode();
   final FocusNode usernameFocusNode = FocusNode();
   final FocusNode passwordFocusNode = FocusNode();
   final FocusNode confirmPasswordFocusNode = FocusNode();
+
+  String passwordErrorText = '';
+  String confirmPasswordErrorText = '';
+  bool isPasswordCriteriaMet = false;
+  bool isPasswordMatching = false;
 
   bool isEmailValid(String email) {
     final emailRegExp = RegExp(r"^[^@]+@[^@]+\.[^@]+$");
@@ -36,13 +38,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   bool isPasswordValid(String password) {
-    // Exemplo de requisitos mínimos: pelo menos 6 caracteres, deve conter letras e números
-    final passwordRegExp = RegExp(r'^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,}$');
-    return passwordRegExp.hasMatch(password);
+    final hasMinLength = password.length >= 6;
+    final hasLetter = password.contains(RegExp(r'[a-zA-Z]'));
+
+    setState(() {
+      isPasswordCriteriaMet = hasMinLength && hasLetter;
+      if (!hasMinLength && !hasLetter) {
+        passwordErrorText =
+            "A senha deve conter pelo menos 6 dígitos e uma letra";
+      } else if (!hasMinLength) {
+        passwordErrorText = "A senha deve conter pelo menos 6 dígitos";
+      } else if (!hasLetter) {
+        passwordErrorText = "A senha deve conter pelo menos uma letra";
+      } else {
+        passwordErrorText = "";
+      }
+    });
+
+    return hasMinLength && hasLetter;
   }
 
   bool arePasswordsMatching(String password, String confirmPassword) {
-    return password == confirmPassword;
+    setState(() {
+      isPasswordMatching = password == confirmPassword;
+      confirmPasswordErrorText =
+          isPasswordMatching ? "" : "As senhas não coincidem";
+    });
+    return isPasswordMatching;
   }
 
   @override
@@ -50,7 +72,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.initState();
     _pageController.addListener(_onPageChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      emailFocusNode.requestFocus(); // Foca no campo de email após o build
+      emailFocusNode.requestFocus();
     });
   }
 
@@ -70,7 +92,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _onPageChanged() {
     setState(() {
-      // Atualiza o estado quando a página muda
+      final pageIndex = _pageController.page?.toInt() ?? 0;
+      if (pageIndex == 1) {
+        FocusScope.of(context).requestFocus(passwordFocusNode);
+      }
     });
   }
 
@@ -82,7 +107,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
 
-    if (passwordController.text != confirmPasswordController.text) {
+    if (!arePasswordsMatching(
+        passwordController.text, confirmPasswordController.text)) {
       if (mounted) {
         Navigator.pop(context);
       }
@@ -117,29 +143,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void previousPage() {
     if (_pageController.page == 0) {
-      widget.onTap
-          ?.call(); // Chama a função de login se estiver na primeira página
+      widget.onTap?.call();
     } else {
       _pageController.previousPage(
           duration: const Duration(milliseconds: 300), curve: Curves.ease);
     }
   }
 
-  void _focusOnCurrentPage() {
-    final pageIndex = _pageController.page?.toInt() ?? 0;
-    switch (pageIndex) {
-      case 0:
-        FocusScope.of(context).requestFocus(emailFocusNode);
-        break;
-      case 1:
-        FocusScope.of(context).requestFocus(passwordFocusNode);
-        break;
-    }
-  }
-
   bool isNextButtonEnabled() {
     if (!_pageController.hasClients) {
-      return false; // Evita acessar antes de estar inicializado
+      return false;
     }
 
     final pageIndex = _pageController.page?.toInt() ?? 0;
@@ -148,10 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       case 0:
         return isEmailValid(emailController.text);
       case 1:
-        return isPasswordValid(passwordController.text) &&
-            isPasswordValid(confirmPasswordController.text) &&
-            arePasswordsMatching(
-                passwordController.text, confirmPasswordController.text);
+        return isPasswordCriteriaMet && isPasswordMatching;
       default:
         return false;
     }
@@ -169,9 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              // Ação para "Ajuda"
-            },
+            onPressed: () {},
             child: Text(
               'Ajuda',
               style: TextStyle(
@@ -184,7 +192,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       body: SafeArea(
         child: PageView(
           controller: _pageController,
-          physics: const NeverScrollableScrollPhysics(), // Desabilita a rolagem
+          physics: const NeverScrollableScrollPhysics(),
           children: [
             buildPage(
               context: context,
@@ -193,6 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               hintText: "exemplo@email.com",
               buttonText: "Próximo",
               focusNode: emailFocusNode,
+              keyboardType: TextInputType.emailAddress,
               showBackButton: true,
             ),
             buildPasswordPage(
@@ -218,6 +227,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required String hintText,
     required String buttonText,
     required FocusNode focusNode,
+    required TextInputType keyboardType,
     bool obscureText = false,
     required bool showBackButton,
   }) {
@@ -240,8 +250,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             obscureText: obscureText,
             controller: controller,
             focusNode: focusNode,
+            keyboardType: keyboardType,
             onChanged: (value) {
-              setState(() {}); // Atualiza o estado quando o valor mudar
+              setState(() {});
             },
           ),
           const SizedBox(height: 25),
@@ -249,7 +260,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           CustomButton(
             text: buttonText,
             onTap: nextPage,
-            isEnabled: isNextButtonEnabled(), // Habilita ou desabilita o botão
+            isEnabled: isNextButtonEnabled(),
           ),
           const SizedBox(height: 15),
           Row(
@@ -314,10 +325,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: passwordController,
             focusNode: passwordFocusNode,
             onChanged: (value) {
-              setState(() {}); // Atualiza o estado quando o valor mudar
+              isPasswordValid(value);
+              setState(() {});
             },
           ),
-          const SizedBox(height: 12),
+          if (passwordErrorText.isNotEmpty) const SizedBox(height: 5),
+          if (passwordErrorText.isNotEmpty)
+            Text(
+              passwordErrorText,
+              style: const TextStyle(color: Colors.red, fontSize: 14),
+            ),
+          if (!passwordErrorText.isNotEmpty) const SizedBox(height: 12),
           const Text(
             "Confirmar Senha",
             style: TextStyle(
@@ -332,16 +350,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: confirmPasswordController,
             focusNode: confirmPasswordFocusNode,
             onChanged: (value) {
-              setState(() {}); // Atualiza o estado quando o valor mudar
+              arePasswordsMatching(passwordController.text, value);
+              setState(() {});
             },
           ),
-          const SizedBox(height: 25),
+          if (confirmPasswordErrorText.isNotEmpty)
+            Text(
+              confirmPasswordErrorText,
+              style: const TextStyle(color: Colors.red),
+            ),
+          const SizedBox(height: 15),
           CustomButton(
             text: buttonText,
             onTap: nextPage,
-            isEnabled: isNextButtonEnabled(), // Habilita ou desabilita o botão
+            isEnabled: isNextButtonEnabled(),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -360,7 +384,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
         ],
       ),
     );

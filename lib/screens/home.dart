@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String userName = "Professor";
   bool isProfileIncomplete = false;
+  bool isExpanded = false; // Estado para controlar expansão
   int currentPage = 0;
 
   @override
@@ -40,18 +41,16 @@ class _HomeScreenState extends State<HomeScreen> {
       if (userData.exists) {
         String? fullName = userData['fullName'];
 
-        if (fullName == null || fullName.isEmpty) {
-          // Usuário desatualizado, mostrar notificação de perfil incompleto
-          setState(() {
+        setState(() {
+          if (fullName == null || fullName.isEmpty) {
             isProfileIncomplete = true;
             notifications.insert(0,
                 "Seu perfil está incompleto. Complete seu nome para acessar todas as funcionalidades.");
-          });
-        } else {
-          setState(() {
-            userName = fullName.split(' ').first; // Pega o primeiro nome
-          });
-        }
+          } else {
+            userName = userData['displayName'];
+            isProfileIncomplete = false;
+          }
+        });
       }
     }
   }
@@ -101,7 +100,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void navigateToProfile(BuildContext context) {
-    Navigator.pushNamed(context, '/profile');
+    if (isProfileIncomplete) {
+      Navigator.pushNamed(context, '/complete_profile');
+    } else {
+      Navigator.pushNamed(context, '/profile');
+    }
+  }
+
+  void navigateToTurmas(BuildContext context) {
+    if (isProfileIncomplete) {
+      Navigator.pushNamed(context, '/complete_profile');
+    } else {
+      Navigator.pushNamed(context, '/turmas');
+    }
   }
 
   void getDataList(BuildContext context) async {
@@ -116,15 +127,14 @@ class _HomeScreenState extends State<HomeScreen> {
       print(userData.data());
       if (userData.exists) {
         String? fullName = userData['fullName'];
-        String? schoolId = userData[
-            'schoolsUID']; // Buscamos o campo que armazena o docId da escola
+        String? schoolId = userData['schoolsUID'];
         List<dynamic>? classes = userData['classes'];
 
         if (fullName != null &&
             schoolId != null &&
             classes != null &&
             classes.isNotEmpty) {
-          // Buscar informações da escola usando o UID (docId)
+          // buscar informações da escola usando o UID (docId)
           DocumentSnapshot schoolData = await FirebaseFirestore.instance
               .collection('schools')
               .doc(schoolId)
@@ -240,106 +250,96 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-                        SizedBox(
-                          height: 104,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  checkProfileCompletion(context);
-                                },
-                                child: SizedBox(
-                                  width: 94,
-                                  height: double.infinity,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Ionicons.text_outline,
-                                        color:
-                                            Theme.of(context).iconTheme.color,
-                                        size: 50,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      const Text(
-                                        'Notas',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
+                        Column(
+                          children: [
+                            // Primeira linha de ícones
+                            SizedBox(
+                              height: 104,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildModule(
+                                    context,
+                                    icon: Ionicons.text_outline,
+                                    label: 'Notas',
+                                    onTap: () {
+                                      checkProfileCompletion(context);
+                                    },
                                   ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  getDataList(context);
-                                },
-                                child: SizedBox(
-                                  width: 94,
-                                  height: double.infinity,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Ionicons.document_text_outline,
-                                        size: 50,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Resumo',
-                                        style: TextStyle(
-                                          color:
-                                              Theme.of(context).iconTheme.color,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
+                                  _buildModule(
+                                    context,
+                                    icon: Ionicons.document_text_outline,
+                                    label: 'Resumo',
+                                    onTap: () {
+                                      getDataList(context);
+                                    },
                                   ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  checkProfileCompletion(context);
-                                },
-                                child: Container(
-                                  width: 94,
-                                  height: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color:
+                                  _buildModule(
+                                    context,
+                                    icon: Ionicons.arrow_forward_circle_outline,
+                                    label: 'Chamada',
+                                    onTap: () {
+                                      checkProfileCompletion(context);
+                                    },
+                                    backgroundColor:
                                         Theme.of(context).colorScheme.primary,
-                                    borderRadius: BorderRadius.circular(23),
+                                    iconColor: Colors.white,
+                                    textColor: Colors.white,
                                   ),
-                                  child: const Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                ],
+                              ),
+                            ),
+                            // Segunda linha de ícones (se expandido)
+                            ClipRect(
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                height: isExpanded ? 114 : 0,
+                                curve: Curves.easeInOut,
+                                child: SingleChildScrollView(
+                                  // Aqui
+                                  child: Column(
                                     children: [
-                                      Icon(
-                                        Ionicons.arrow_forward_circle_outline,
-                                        color: Colors.white,
-                                        size: 50,
-                                      ),
-                                      SizedBox(height: 4),
-                                      Text(
-                                        'Chamada',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
+                                      if (isExpanded) ...[
+                                        const SizedBox(height: 20),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _buildModule(
+                                              context,
+                                              icon: Ionicons.people_outline,
+                                              label: 'Turmas',
+                                              onTap: () {
+                                                navigateToTurmas(context);
+                                              },
+                                            ),
+                                            _buildModule(
+                                              context,
+                                              icon: Ionicons.calendar_outline,
+                                              label: 'Calendário',
+                                              onTap: () {},
+                                            ),
+                                            _buildModule(
+                                              context,
+                                              icon: Ionicons.settings_outline,
+                                              label: 'Configurações',
+                                              onTap: () {},
+                                            ),
+                                          ],
                                         ),
-                                      ),
+                                      ],
                                     ],
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 25),
                         Center(
                           child: Container(
+                            // dropdown box
                             width: 110,
                             height: 45,
                             decoration: BoxDecoration(
@@ -348,10 +348,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: TextButton(
                               onPressed: () {
-                                clearPreference(context);
+                                setState(() {
+                                  isExpanded = !isExpanded;
+                                });
                               },
                               child: Icon(
-                                Ionicons.chevron_down,
+                                isExpanded
+                                    ? Ionicons.chevron_up
+                                    : Ionicons.chevron_down,
                                 color: Theme.of(context).iconTheme.color,
                               ),
                             ),
@@ -434,6 +438,46 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModule(BuildContext context,
+      {required IconData icon,
+      required String label,
+      required VoidCallback onTap,
+      Color? backgroundColor,
+      Color? iconColor,
+      Color? textColor}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 94,
+        height: 94,
+        decoration: BoxDecoration(
+          color: backgroundColor ?? Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: iconColor ?? Theme.of(context).iconTheme.color,
+              size: 50,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color:
+                    textColor ?? Theme.of(context).textTheme.bodyLarge!.color,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
